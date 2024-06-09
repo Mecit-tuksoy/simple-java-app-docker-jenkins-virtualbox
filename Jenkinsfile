@@ -41,32 +41,31 @@ pipeline {
                 sh 'docker build --force-rm -t ${IMAGE_TAG} .'
             }
         }
+                        
 
         stage('Check and Push Docker Image') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-                sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                        
+                        def imageExists = sh(script: "docker pull ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest", returnStatus: true) == 0
+
+                        if (imageExists) {
+                            echo "Docker image ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest already exists. Pulling the image."
+                            sh "docker pull ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest"
+                        } else {
+                            echo "Docker image ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest does not exist. Tagging and pushing the image."
+                            sh "docker tag ${DOCKER_IMAGE_NAME}:latest ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest"
+                            sh "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest"
+                        }
+                        
+                        sh 'docker logout'
+                    }
+                }
             }
-        }                        
-
-        // stage('Check and Push Docker Image') {
-        //     steps {
-        //         script {
-        //             docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_HUB_CREDENTIALS') {
-        //                 def imageExists = sh(script: "docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest", returnStatus: true) == 0
-
-        //                 if (imageExists) {
-        //                     echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest already exists. Pulling the image."
-        //                 } else {
-        //                     echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest does not exist. Tagging and pushing the image."
-        //                     sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-        //                     sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        }
+    
 
         stage('Test Google Cloud SDK') {
             steps {
@@ -81,7 +80,7 @@ pipeline {
 
                   "
                 '''
-                }
-            }  
-        }
+            }
+        }  
+    }
 }
