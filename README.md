@@ -276,6 +276,26 @@ CloudBees Docker Pipeline Plugin: Bu eklenti, Jenkins pipeline'larında Docker k
 
 Docker Traceability Plugin: Bu eklenti, Jenkins tarafından kullanılan Docker imajlarının izlenebilirliğini sağlar. Docker imajlarının ve konteynerlerin kullanımıyla ilgili bilgileri toplar ve raporlar.
 
+## webhooks trigir ayarı
+Adım 1: Jenkins GitHub Plugin'i Yükleme
+Jenkins ana sayfasında "Manage Jenkins"e gidin.
+"Manage Plugins"e tıklayın.
+"Available" sekmesine gidin ve "GitHub Integration Plugin" ve "GitHub Plugin" gibi GitHub ile ilgili eklentileri arayın ve yükleyin.
+Adım 2: Jenkins Job'unu Yapılandırma
+Jenkins ana sayfasında, tetiklemek istediğiniz job'u açın veya yeni bir job oluşturun.
+"Configure"e tıklayın.
+"Source Code Management" sekmesine gidin ve Git'i seçin. Git repository URL'sini girin.
+"Build Triggers" sekmesine gidin ve "GitHub hook trigger for GITScm polling" seçeneğini işaretleyin.
+Değişiklikleri kaydedin.
+Adım 3: GitHub Webhook Ayarları
+GitHub repository'nize gidin.
+Repository'nin sağ üst köşesindeki "Settings"e tıklayın.
+Sol menüde "Webhooks"u seçin ve "Add webhook"e tıklayın.
+"Payload URL" kısmına Jenkins sunucunuzun URL'sini girin. Örneğin: http://your-jenkins-server/github-webhook/
+"Content type" olarak "application/json" seçin.
+"Which events would you like to trigger this webhook?" altında "Just the push event" veya tetiklemek istediğiniz diğer olayları seçin.
+"Add webhook"e tıklayın.
+
 
 ## Jenkins'te Docker Hub kimlik bilgilerinizi ayarlamak için:
 

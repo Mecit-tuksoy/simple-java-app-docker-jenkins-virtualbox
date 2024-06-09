@@ -24,7 +24,7 @@ pipeline {
         stage('Package Application') {
             steps {
                 echo 'Compiling source code'
-                sh '. ./simple-java-container-CI-CD/jenkins/package-application.sh'
+                sh '. ./jenkins/package-application.sh'
             }
         }
         
