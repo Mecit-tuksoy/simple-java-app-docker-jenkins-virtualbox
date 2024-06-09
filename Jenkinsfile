@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
-        DOCKER_USERNAME = DOCKER_HUB_CREDENTIALS_USR
-        DOCKER_PASSWORD = DOCKER_HUB_CREDENTIALS_PSW
+        DOCKER_USERNAME = "${DOCKER_HUB_CREDENTIALS_USR}"
+        DOCKER_PASSWORD = "${DOCKER_HUB_CREDENTIALS_PSW}"
         REMOTE_HOST = 'nginx'
         REMOTE_USER = 'mecit_tuksoy'
         PROJEKT_ID = 'sodium-daylight-425313-u7'
