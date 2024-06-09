@@ -32,7 +32,7 @@ pipeline {
             steps {
                 echo 'Preparing Tags for Docker Images'
                 script {
-                    MVN_VERSION = sh(script: '. ${WORKSPACE}/simple-java-container-CI-CD/target/maven-archiver/pom.properties && echo $version', returnStdout: true).trim()
+                    MVN_VERSION = sh(script: '. ${WORKSPACE}/target/maven-archiver/pom.properties && echo $version', returnStdout: true).trim()
                     env.IMAGE_TAG = "my-java-app-v${MVN_VERSION}-b${BUILD_NUMBER}".toLowerCase()
                 }
             }
