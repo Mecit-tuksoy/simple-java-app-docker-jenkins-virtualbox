@@ -22,7 +22,7 @@ pipeline {
         stage('Package Application') {
             steps {
                 echo 'Compiling source code'
-                sh '. ./simple-java-container-CI-CD/jenkins/package-application.sh'
+                sh '. ./jenkins/package-application.sh'
             }
         }
         
@@ -30,7 +30,7 @@ pipeline {
             steps {
                 echo 'Preparing Tags for Docker Images'
                 script {
-                    MVN_VERSION = sh(script: '. ${WORKSPACE}/simple-java-container-CI-CD/target/maven-archiver/pom.properties && echo $version', returnStdout: true).trim()
+                    MVN_VERSION = sh(script: '. ${WORKSPACE}/target/maven-archiver/pom.properties && echo $version', returnStdout: true).trim()
                     env.IMAGE_TAG = "my-java-app-v${MVN_VERSION}-b${BUILD_NUMBER}".toLowerCase()
                 }
             }
@@ -47,39 +47,41 @@ pipeline {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                 sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
                 sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-           
-                // script {
-                //     docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_HUB_CREDENTIALS') {
-                //         def imageExists = sh(script: "docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest", returnStatus: true) == 0
-
-                //         if (imageExists) {
-                //             echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest already exists. Pulling the image."
-                //         } else {
-                //             echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest does not exist. Tagging and pushing the image."
-                //             sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-                //             sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-                //         }
-                //     }
-                // }
             }
-        }
+        }                        
+
+        // stage('Check and Push Docker Image') {
+        //     steps {
+        //         script {
+        //             docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_HUB_CREDENTIALS') {
+        //                 def imageExists = sh(script: "docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest", returnStatus: true) == 0
+
+        //                 if (imageExists) {
+        //                     echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest already exists. Pulling the image."
+        //                 } else {
+        //                     echo "Docker image ${DOCKER_USERNAME}/${IMAGE_TAG}:latest does not exist. Tagging and pushing the image."
+        //                     sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
+        //                     sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Test Google Cloud SDK') {
             steps {
-                withCredentials([file(credentialsId: 'gcloud-creds', variable: 'GCLOUD_CREDS')]) {
-                    sh '''
-                        gcloud version
-                        gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
-                        gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
-                            docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                            docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                            sleep 30
-                            curl http://localhost:8080
+                sh '''
+                  gcloud version
+                  gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
+                  gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
+                      docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                      docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                      sleep 30
+                      curl http://localhost:8080
 
-                        "
-                    '''
+                  "
+                '''
                 }
             }  
         }
-    }
 }
