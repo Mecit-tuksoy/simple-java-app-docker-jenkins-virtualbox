@@ -51,7 +51,6 @@ pipeline {
                         sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                         sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
                         sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
-                        sh 'docker logout'
                         }
                     }
                 }
