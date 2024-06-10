@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Hata durumunda betiği durdur
-set -e
-
 # Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
 sudo apt-get remove -y docker docker-engine docker.io containerd runc
 
