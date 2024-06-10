@@ -39,21 +39,3 @@ else
     echo "Jenkins kurulumu başarısız oldu. Lütfen hataları kontrol edin."
 fi
 
-
-# Google Cloud SDK'yı (gcloud) Kurun.
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-sudo apt-get install apt-transport-https ca-certificates gnupg
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk -y
-
-
-
-#install docker
-
-
-
-
-
-sudo usermod -aG docker jenkins
-sudo systemctl restart jenkins
-
