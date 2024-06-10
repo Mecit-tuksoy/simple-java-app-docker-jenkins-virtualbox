@@ -56,7 +56,7 @@ pipeline {
                     }
                 }
             }
-        }
+        
     
 
         stage('Test Google Cloud SDK') {
@@ -73,6 +73,7 @@ pipeline {
                   "
                 '''
             }
-        }  
+        }         
     }
 }
+
