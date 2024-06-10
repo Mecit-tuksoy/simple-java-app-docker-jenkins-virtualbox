@@ -399,27 +399,6 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 
 
-## Jenkins'de webhooks trigir ayarı için:
-
-1- Jenkins ana sayfasında "Yeni Öğe"'ye tıklayın.
-
-2- Öğe adını girin.
-
-3- "Pipeline" seçin.
-
-4- "Build Triggers" tetikleyici oluşturma kısmından "GitHub hook trigger for GITScm polling" tik atın.
-
-5- "Pipeline" altında "Definition" kısmında "SCM" yi "Git" seçin
-
-6- "Repository URL" kısmına github repo url girin.
-
-7- "Branch Specifier (blank for 'any')"  kısmına hangi branch'da çalışmasını istiyorsanız yazabilirsiniz.
-
-8- "Script Path"  Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
-
-9- "Kaydet" diyebiliriz.
-
-
 
 # Docker Hub'da bir access token oluşturmak için:
 
@@ -477,6 +456,26 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 
 
+
+## Jenkins'de webhooks trigir ayarı için:
+
+1- Jenkins ana sayfasında "Yeni Öğe"'ye tıklayın.
+
+2- Öğe adını girin.
+
+3- "Pipeline" seçin.
+
+4- "Build Triggers" tetikleyici oluşturma kısmından "GitHub hook trigger for GITScm polling" tik atın.
+
+5- "Pipeline" altında "Definition" kısmında "SCM" yi "Git" seçin
+
+6- "Repository URL" kısmına github repo url girin.
+
+7- "Branch Specifier (blank for 'any')"  kısmına hangi branch'da çalışmasını istiyorsanız yazabilirsiniz.
+
+8- "Script Path"  Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
+
+9- "Kaydet" diyebiliriz.
 
 
 

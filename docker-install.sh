@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Hata durumunda betiği durdur
+set -e
+
 # Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
 sudo apt-get remove -y docker docker-engine docker.io containerd runc
 
@@ -8,11 +11,11 @@ sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
 # Docker'ın resmi GPG anahtarını ekleyin
-yes | curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docke>
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 # Docker resmi apt repository'sini kurun
 echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://dow>
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Paket veritabanını güncelleyin ve Docker'ı yükleyin
@@ -37,3 +40,6 @@ echo "Docker başarıyla kuruldu ve yapılandırıldı."
 
 # Oturumu yeniden yükle
 newgrp docker
+
+# Kurulumun tamamlandığını belirt
+echo "Docker kurulumu ve yapılandırılması tamamlandı. Lütfen mevcut terminal oturumunu kapatıp yeniden açın veya 'newgrp docker' komutunu çalıştırın."
