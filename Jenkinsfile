@@ -60,20 +60,21 @@ pipeline {
 
         stage('Test Google Cloud SDK') {
             steps {
-                sh '''
-                  gcloud version
-                  gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
-                  gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
-                      echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                      docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                      docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                      sleep 30
-                      curl http://localhost:8080
-
-                  "
-                '''
-            }
-        }         
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                    sh '''
+                      gcloud version
+                      gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
+                      gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
+                          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                          docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          sleep 30
+                          curl http://localhost:8080
+                      "
+                    '''
+                }
+            }         
+        }
     }
 }
 
