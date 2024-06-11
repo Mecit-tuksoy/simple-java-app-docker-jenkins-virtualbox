@@ -8,14 +8,14 @@
 1. [Google Cloud Console](https://console.cloud.google.com/) adresine gidin ve Google hesabınızla giriş yapın.
 
 ### Yeni Bir Proje Oluşturun
-1. Üstteki proje seçicisini tıklayın ve "Yeni Proje"yi seçin.
+1. Üstteki proje seçicisini tıklayın ve "New Project"yi seçin.
 2. Projeye bir isim verin ve oluşturun.
 
 # Adım 2: Compute Engine API'sini Etkinleştirme
 
 ### Compute Engine API'sini Etkinleştirin
 1. Menüden "Compute Engine" -> "VM Instances" sekmesine gidin.
-2. "Enable" butonuna tıklayarak Compute Engine API'sini etkinleştirin.
+2. "Enable" butonuna tıklayarak Compute Engine API'sini etkinleştirin. 
 
 # Adım 3: Yeni Bir VM Oluşturma
 
@@ -34,13 +34,23 @@
 4. **Disk Type:** İhtiyacınıza göre disk tipini seçin.
 5. **Size:** Disk boyutunu belirleyin (örneğin, 10 GB).
 
-### Firewall Ayarları
-1. "Allow HTTP traffic" ve "Allow HTTPS traffic" seçeneklerini işaretleyin.
-2. "Allow SSH traffic" seçeneğini işaretleyin.
-
-
 ### Oluşturma
 1. "Create" butonuna tıklayarak VM'yi oluşturun.
+
+### Firewall Ayarları
+1. "Allow HTTP traffic", "Allow HTTPS traffic"  seçeneğini işaretleyin.
+2. "VM instance" sayfasından "Set up firewall rules" seçin
+3.  Açılan sayfadan "CREATE FIREWALL RULE" seçin
+4.  Açılan sayfada dolduracağımız alanlar:
+     Name:jenkins-sg-8080
+     Targets: All instances in the network
+     Source IPv4 ranges: 0.0.0.0/0
+     TCP: 8080
+5. Create 
+     
+
+
+
 
 # Adım 4: SSH ile Bağlantı Kurma
 
@@ -57,46 +67,6 @@ SSH ile bağlandıktan sonra, paket listelerini güncelleyin ve sisteminizi gün
 sudo apt update
 sudo apt upgrade
 ```
-
-
-## İlgili olmayan ek paketlerin yüklü olup olmadığının kontrolü :
-
-
-````bash
-dpkg -l | grep xorg
-dpkg -l | grep xserver
-#Bu komutlar hiçbir çıktı döndürmedi, yani X Sunucusu kurulu değil. 
-
-# xserver-xorg ve onunla ilişkili tüm paketleri tamamen kaldırmak için:
-sudo apt-get remove --purge xserver-xorg* --yes
-
-#Artık kullanılmayan bağımlılık paketlerini ve yapılandırma dosyalarını kaldırmak için:
-sudo apt-get autoremove --purge --yes
-
-#İndirme önbelleğini temizlemek için:
-sudo apt-get clean
-````
-
-````sh
-dpkg -l | grep gnome
-dpkg -l | grep kde
-dpkg -l | grep lxde
-````
-Bu komutlar da hiçbir çıktı döndürmedi, yani GNOME, KDE, LXDE gibi grafiksel masaüstü ortamları kurulu değil.
-
-
-````sh
-dpkg -l | grep 'openssh-server'
-````
-Bu komut, SSH sunucusunun kurulu olduğunu gösterdi.
-
-
-Sistemi güncelleyin:
-````sh
-sudo apt-get update
-sudo apt-get upgrade 
-````
-
 
 ############################
 ### jenkins kurulumu:  ###
@@ -132,10 +102,12 @@ sudo apt install jenkins -y
 sudo systemctl enable jenkins
 sudo systemctl start jenkins
 
+
+IP=$(curl -s ifconfig.me)
 # Kurulumun başarılı olup olmadığı kontrol ediliyor
 if systemctl is-active --quiet jenkins; then
     echo "Jenkins başarıyla kuruldu!"
-    echo "Jenkins web arayüzüne tarayıcınızdan http://<sunucu_ip_adresi>:8080 adresinden erişebilirsiniz."
+    echo "Jenkins web arayüzüne tarayıcınızdan http://$IP:8080 adresinden erişebilirsiniz."
 else
     echo "Jenkins kurulumu başarısız oldu. Lütfen hataları kontrol edin."
 fi
@@ -143,6 +115,7 @@ fi
 
 Yetkilendirme
 ````sh
+ls -al
 sudo chmod 755 jenkins.sh
 ````
 
@@ -174,11 +147,11 @@ sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
 # Docker'ın resmi GPG anahtarını ekleyin
-yes | curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docke>
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 # Docker resmi apt repository'sini kurun
 echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://dow>
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Paket veritabanını güncelleyin ve Docker'ı yükleyin
@@ -207,6 +180,7 @@ newgrp docker
 
 Yetkilendirme
 ````sh
+ls -al
 sudo chmod 755 docker.sh
 ````
 
@@ -214,6 +188,9 @@ jenkins.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
 
 ````sh
 bash ./docker.sh
+
+#Docker grubunda jenkins oluduğunu kontrol et:
+getent group docker
 ````
 
 
@@ -338,6 +315,13 @@ server {
 
 ````
 
+yetki kontrol:
+````sh
+ls -al
+````
+
+
+
 # Bu değişiklikleri yaptıktan sonra bir yanlışlık olup olmadığını kontrol etmek için:
 
 ````sh
@@ -378,7 +362,7 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 3- "Eklentiler" tıklayın
 
-4-  "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline**, **Docker Build Step** eklentilerini yükleyin.
+4-  "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline**, **Docker Build Step*** eklentilerini yükleyin.
 
 
 
@@ -476,21 +460,3 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 8- "Script Path"  Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
 
 9- "Kaydet" diyebiliriz.
-
-
-
-##  Google Cloud SDK'yı (gcloud) Kurun
-Jenkins'in çalıştığı makinede Google Cloud SDK'nın kurulu olması gerekiyor. Bunu yapabilmek için:
-
-Debian/Ubuntu için:
-````sh
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-sudo apt-get install apt-transport-https ca-certificates gnupg
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk
-````
-
-google cloud'da instance'a bağlanma
-````sh
- gcloud compute ssh mecit_tuksoy@nginx --zone=us-central1-a --project=sodium-daylight-425313-u7
- ````

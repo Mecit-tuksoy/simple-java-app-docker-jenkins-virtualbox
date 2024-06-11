@@ -38,5 +38,3 @@ echo "Docker başarıyla kuruldu ve yapılandırıldı."
 # Oturumu yeniden yükle
 newgrp docker
 
-# Kurulumun tamamlandığını belirt
-echo "Docker kurulumu ve yapılandırılması tamamlandı. Lütfen mevcut terminal oturumunu kapatıp yeniden açın veya 'newgrp docker' komutunu çalıştırın."

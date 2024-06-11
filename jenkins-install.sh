@@ -30,11 +30,11 @@ sudo systemctl start jenkins
 # Jenkins hizmet durumunu kontrol edin
 #sudo systemctl status jenkins
 
-
+IP=$(curl -s ifconfig.me)
 # Kurulumun başarılı olup olmadığı kontrol ediliyor
 if systemctl is-active --quiet jenkins; then
     echo "Jenkins başarıyla kuruldu!"
-    echo "Jenkins web arayüzüne tarayıcınızdan http://<sunucu_ip_adresi>:8080 adresinden erişebilirsiniz."
+    echo "Jenkins web arayüzüne tarayıcınızdan http://$IP:8080 adresinden erişebilirsiniz."
 else
     echo "Jenkins kurulumu başarısız oldu. Lütfen hataları kontrol edin."
 fi

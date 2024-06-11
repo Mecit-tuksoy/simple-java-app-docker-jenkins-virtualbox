@@ -6,7 +6,7 @@ pipeline {
         DOCKER_USERNAME = 'mecit35'
         REMOTE_HOST = 'nginx'
         REMOTE_USER = 'mecit_tuksoy'
-        PROJEKT_ID = 'sodium-daylight-425313-u7'
+        PROJEKT_ID = 'deneme-426109'
         GCLOUD_CREDS = credentials('gcloud-creds')
         ZONE = 'us-central1-a'
 
