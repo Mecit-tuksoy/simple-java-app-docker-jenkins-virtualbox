@@ -1,33 +1,41 @@
- ####################################################################  
-# Google Cloud Platform'da Ubuntu 24.04 LTS Minimal Sunucu Kurulumu  #
- ####################################################################
+####################################################################
 
-# Adım 1: Google Cloud Platform'da Proje Oluşturma
+# Google Cloud Platform'da Ubuntu 24.04 LTS Minimal Sunucu Kurulumu
+
+####################################################################
+
+# Google Cloud Platform'da Proje Oluşturma
 
 ### Google Cloud Console'a Giriş Yapın
+
 1. [Google Cloud Console](https://console.cloud.google.com/) adresine gidin ve Google hesabınızla giriş yapın.
 
 ### Yeni Bir Proje Oluşturun
+
 1. Üstteki proje seçicisini tıklayın ve "New Project"yi seçin.
 2. Projeye bir isim verin ve oluşturun.
 
-# Adım 2: Compute Engine API'sini Etkinleştirme
+# Compute Engine API'sini Etkinleştirme
 
 ### Compute Engine API'sini Etkinleştirin
-1. Menüden "Compute Engine" -> "VM Instances" sekmesine gidin.
-2. "Enable" butonuna tıklayarak Compute Engine API'sini etkinleştirin. 
 
-# Adım 3: Yeni Bir VM Oluşturma
+1. Menüden "Compute Engine" -> "VM Instances" sekmesine gidin.
+2. "Enable" butonuna tıklayarak Compute Engine API'sini etkinleştirin.
+
+# Yeni Bir VM Oluşturma
 
 ### Yeni VM Instance Oluşturma (Jenkins için)
+
 1. "Create Instance" butonuna tıklayın.
 
 ### VM Ayrıntılarını Belirleme
+
 1. **Name:** VM'ye bir isim verin. **(Jenkins)**
 2. **Region and Zone:** İhtiyacınıza göre bir bölge ve zona seçin. (us-central1 (Iowa)) (us-central1-a)
 3. **Machine Type:** Gerekli CPU ve RAM miktarını seçin (e2-standard-2 (2 vCPU, 1 core, 8 GB memory)).
 
 ### Boot Disk (Başlangıç Diski) Ayarları
+
 1. **Boot Disk:** "Change" butonuna tıklayın.
 2. **Operating System:** "Ubuntu" seçin.
 3. **Version:** "Ubuntu 24.04 LTS" seçin.
@@ -35,53 +43,54 @@
 5. **Size:** Disk boyutunu belirleyin (örneğin, 10 GB).
 
 ### Oluşturma
+
 1. "Create" butonuna tıklayarak VM'yi oluşturun.
 
 ### Firewall Ayarları
-1. "Allow HTTP traffic", "Allow HTTPS traffic"  seçeneğini işaretleyin.
+
+1. "Allow HTTP traffic", "Allow HTTPS traffic" seçeneğini işaretleyin.
 2. "VM instance" sayfasından "Set up firewall rules" seçin
-3.  Açılan sayfadan "CREATE FIREWALL RULE" seçin
-4.  Açılan sayfada dolduracağımız alanlar:
-     Name:jenkins-sg-8080
-     Targets: All instances in the network
-     Source IPv4 ranges: 0.0.0.0/0
-     TCP: 8080
-5. Create 
-     
+3. Açılan sayfadan "CREATE FIREWALL RULE" seçin
+4. Açılan sayfada dolduracağımız alanlar:
+   Name:jenkins-sg-8080
+   Targets: All instances in the network
+   Source IPv4 ranges: 0.0.0.0/0
+   TCP: 8080
+5. Create
 
-
-
-
-# Adım 4: SSH ile Bağlantı Kurma
+## SSH ile Bağlantı Kurma
 
 ### Google Cloud Console üzerinden SSH ile Bağlantı
+
 1. VM Instances listesinden yeni oluşturduğunuz VM'yi bulun.
 2. "SSH" butonuna tıklayarak tarayıcı üzerinden VM'ye bağlanın.
 
-
-# Adım 5: Ubuntu 24.04 LTS'yi Güncelleme 
+# Ubuntu 24.04 LTS'yi Güncelleme
 
 ### Paketleri Güncelleme
+
 SSH ile bağlandıktan sonra, paket listelerini güncelleyin ve sisteminizi güncel tutun:
+
 ```sh
 sudo apt update
 sudo apt upgrade
 ```
 
 ############################
-### jenkins kurulumu:  ###
+
+### jenkins kurulumu:
+
 ############################
 
 Jenkins serverda :
 
 'jenkins.sh' dosyası oluşturup içine bunları yapıştırıyoruz;
 
-````sh
+```sh
 nano jenkins.sh
-````
+```
 
-
-````sh
+```sh
 #!/bin/bash
 
 # Sistemi güncelleyin
@@ -111,32 +120,36 @@ if systemctl is-active --quiet jenkins; then
 else
     echo "Jenkins kurulumu başarısız oldu. Lütfen hataları kontrol edin."
 fi
-````
+```
 
 Yetkilendirme
-````sh
+
+```sh
 ls -al
 sudo chmod 755 jenkins.sh
-````
+```
 
 jenkins.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
 
-````sh
+```sh
 bash ./jenkins.sh
-````
-
+```
 
 ###########################################
-### Jenkins Server'a Docker kurulumu:  ###
+
+### Jenkins Server'a Docker kurulumu:
+
 ###########################################
 
 'docker.sh' dosyası oluşturma:
 
-````sh
+```sh
 nano docker.sh
-````
+```
+
 dosyanın içi:
-````sh
+
+```sh
 #!/bin/bash
 
 # Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
@@ -176,33 +189,35 @@ echo "Docker başarıyla kuruldu ve yapılandırıldı."
 
 # Oturumu yeniden yükle
 newgrp docker
-````
+```
 
 Yetkilendirme
-````sh
+
+```sh
 ls -al
 sudo chmod 755 docker.sh
-````
+```
 
 jenkins.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
 
-````sh
+```sh
 bash ./docker.sh
 
 #Docker grubunda jenkins oluduğunu kontrol et:
 getent group docker
-````
-
+```
 
 ####################################################
-#### YENİ VM AYAĞA KALDIR (jENKİNS SERVİR GİBİ) ####
+
+#### YENİ VM AYAĞA KALDIR (jENKİNS SERVİR GİBİ)
+
 ####################################################
 
 Servere-name: 'nginx'
 
 Bu server Nginx ve Certbot kullanarak güvenli bağlantı için kullanılacak.
 
-**Bu serverin 'nginx server' public ip'sine Domain name ile "A record" yapacağız. "mecitdevops.com"  ve "www.mecitdevops.com" şeklinde**
+**Bu serverin 'nginx server' public ip'sine Domain name ile "A record" yapacağız. "mecitdevops.com" ve "www.mecitdevops.com" şeklinde**
 
 ### Jenkins'in Güvenli Bağlantısının Ayarlanması (SSL):
 
@@ -211,43 +226,52 @@ Bu server Nginx ve Certbot kullanarak güvenli bağlantı için kullanılacak.
 Ücretsiz Let’s Encrypt Sertifikası Kullanmak
 
 Sırası ile aşağıdaki komutları girerek 'nginx' ve 'certbot' kuruyoruz.
-````sh
+
+```sh
 sudo apt update -y
 sudo apt install -y nginx
 sudo apt install certbot python3-certbot-nginx -y
-````
+```
+
 # kurulumdan sonra domain name belirtiyoruz
-````sh
+
+```sh
 sudo certbot --nginx -d mecitdevops.com -d www.mecitdevops.com
-````
+```
 
 # Çıktı bu şekilde olacak:
 
 Saving debug log to /var/log/letsencrypt/letsencrypt.log
 Enter email address (used for urgent renewal and security notices)
- (Enter 'c' to cancel): mecit.tuksoy@gmail.com
+(Enter 'c' to cancel): mecit.tuksoy@gmail.com
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+---
+
 Please read the Terms of Service at
 https://letsencrypt.org/documents/LE-SA-v1.4-April-3-2024.pdf. You must agree in
 order to register with the ACME server. Do you agree?
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+---
+
 (Y)es/(N)o: y
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+---
+
 Would you be willing, once your first certificate is successfully issued, to
 share your email address with the Electronic Frontier Foundation, a founding
 partner of the Let's Encrypt project and the non-profit organization that
 develops Certbot? We'd like to send you email about our work encrypting the web,
 EFF news, campaigns, and ways to support digital freedom.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+---
+
 (Y)es/(N)o: y
 Account registered.
 Requesting a certificate for mecitdevops.com and www.mecitdevops.com
 
 Successfully received certificate.
 Certificate is saved at: /etc/letsencrypt/live/mecitdevops.com/fullchain.pem
-Key is saved at:         /etc/letsencrypt/live/mecitdevops.com/privkey.pem
+Key is saved at: /etc/letsencrypt/live/mecitdevops.com/privkey.pem
 This certificate expires on 2024-09-03.
 These files will be updated when the certificate renews.
 Certbot has set up a scheduled task to automatically renew this certificate in the background.
@@ -258,24 +282,27 @@ Successfully deployed certificate for www.mecitdevops.com to /etc/nginx/sites-en
 Congratulations! You have successfully enabled HTTPS on https://mecitdevops.com and https://www.mecitdevops.com
 We were unable to subscribe you the EFF mailing list because your e-mail address appears to be invalid. You can try again later by visiting https://act.eff.org.
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-If you like Certbot, please consider supporting our work by:
- * Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
- * Donating to EFF:                    https://eff.org/donate-le
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+---
 
-````bash
-cd /etc/nginx/sites-available/              
-````
+If you like Certbot, please consider supporting our work by:
+
+- Donating to ISRG / Let's Encrypt: https://letsencrypt.org/donate
+- Donating to EFF: https://eff.org/donate-le
+
+---
+
+```bash
+cd /etc/nginx/sites-available/
+```
+
 bu dizindeki 'default' dosyasını aşağıdaki gibi değiştiriyoruz
 
-````sh
+```sh
 sudo rm -rf default
 sudo nano default
-````
+```
 
-
-````sh
+```sh
 upstream app {
     server <jenkins-server-private-ip>:8080;
 
@@ -313,38 +340,37 @@ server {
     }
 }
 
-````
+```
 
 yetki kontrol:
-````sh
+
+```sh
 ls -al
-````
-
-
+```
 
 # Bu değişiklikleri yaptıktan sonra bir yanlışlık olup olmadığını kontrol etmek için:
 
-````sh
+```sh
 sudo nginx -t
-````
+```
+
 çıktısı bu şekilde ise devam edebiliriz:
 
 nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
 nginx: configuration file /etc/nginx/nginx.conf test is successful
 
-
 # nginx'i yeniden başlatmak için:
 
-````sh
+```sh
 sudo systemctl restart nginx.service
-````
-
+```
 
 # domain name ile güvenli bağlantı ile (domain name) jenkinse bağlanabiliriz
 
- ````sh
- sudo cat /var/lib/jenkins/secrets/initialAdminPassword 
-````
+```sh
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
+
 bu komutu jenkins serverinda girerek gelen şifreyi tarayıcıda ilgili yere yazıyoruz ve jenkins'e giriyoruz.
 
 Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
@@ -353,13 +379,13 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 # Nginx kurduğumuz makinede oluşturacağımız image çekip docker containere çalıştıracağımız için bu makineyede docker kuruyoruz:
 
-````sh
+```sh
 sudo nano docker.sh
-````
+```
 
 docker.sh dosyasının içeriği:
 
-````sh
+```sh
 #!/bin/bash
 
 # Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
@@ -388,9 +414,6 @@ sudo systemctl start docker
 # Kullanıcıyı docker grubuna ekleyin
 sudo usermod -aG docker $USER
 
-# Jenkins hizmetini yeniden başlatın
-sudo systemctl restart jenkins
-
 # Docker'ın kurulumunu ve sürümünü kontrol edin
 docker --version
 
@@ -398,45 +421,37 @@ echo "Docker başarıyla kuruldu ve yapılandırıldı."
 
 # Oturumu yeniden yükle
 newgrp docker
-````
+```
 
 Çalıştırmak içim:
 
-````sh
+```sh
 bash ./docker.sh
-````
-
-
+```
 
 # Domain name ile jenkinse bağlanarak gerekli eklentilerin yüklenmesi için:
 
 1- Jenkins dashboard'una gidin.
 
-2- Sol taraftaki menüden "Jenkins'i Yönet"  seçeneğine tıklayın.
+2- Sol taraftaki menüden "Jenkins'i Yönet" seçeneğine tıklayın.
 
 3- "Eklentiler" tıklayın
 
-4-  "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline**, **Docker Build Step*** eklentilerini yükleyin.
-
-
-
+4- "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline** eklentilerini yükleyin.
 
 ## GitHub'ta webhooks ayarlamak için:
 
-1-  GitHub hesabınıza giriş yapın ve ilgili repository'yi seçin.
+1- GitHub hesabınıza giriş yapın ve ilgili repository'yi seçin.
 
-2-  Repository'nin üst kısmındaki menüden "Settings"e tıklayın.
+2- Repository'nin üst kısmındaki menüden "Settings"e tıklayın.
 
-3-  Sol taraftaki menüden "Webhooks" sekmesine tıklayın.
+3- Sol taraftaki menüden "Webhooks" sekmesine tıklayın.
 
 4- "Add Webhook" butonuna tıklayın.
 
 5- "Payload URL" alanına "https://www.<domain-name>/github-webhook/" yazın.
 
-6-  Başka bir değişiklik veya girdi yapmadan "Add Webhook" diyebiliriz. 
-
-
-
+6- Başka bir değişiklik veya girdi yapmadan "Add Webhook" diyebiliriz.
 
 # Docker Hub'da bir access token oluşturmak için:
 
@@ -452,13 +467,11 @@ bash ./docker.sh
 
 6- Oluşturulan token'ı kopyalayın.
 
-
-
 ## Jenkins'te Docker Hub kimlik bilgilerinizi ayarlamak için:
 
 1- Jenkins dashboard'una gidin.
 
-2- Sol taraftaki menüden "Jenkins'i Yönet"  seçeneğine tıklayın.
+2- Sol taraftaki menüden "Jenkins'i Yönet" seçeneğine tıklayın.
 
 3- "Credentials" sekmesine geçin.
 
@@ -472,13 +485,30 @@ bash ./docker.sh
 
 8- "Create" düğmesine tıklayarak bilgilerinizi kaydedin.
 
+# Google Cloud'da VM instance bağlanmak için :
 
+1- IAM & Admin bölümüne git
+
+2- "Service accounts" tıkla
+
+3- "CREATE SERVICE ACCOUNT" tıkla
+
+4- "Service account details" bölümünde
+isim yaz,
+"Grant this service account access to project" bölümünde "Owner" seç
+"DONE" tıkla bitir.
+
+5- Oluşturduğun Service account' a tıkla
+
+6- açılan sayfada "KEY" tıkla
+
+7- "ADD KEY" tıkla ve "Service account" ardından json formatında "create" et ve kaydet.
 
 ## Jenkins'te Google Cloud kimlik bilgilerinizi (key) ayarlamak için:
 
 1- Jenkins dashboard'una gidin.
 
-2- Sol taraftaki menüden "Jenkins'i Yönet"  seçeneğine tıklayın.
+2- Sol taraftaki menüden "Jenkins'i Yönet" seçeneğine tıklayın.
 
 3- "Credentials" sekmesine geçin.
 
@@ -491,9 +521,6 @@ bash ./docker.sh
 7- "ID" kısmına Kimlik bilgileriniz için bir tanım verin (örneğin, "gcloud-creds"). (Bunu Jenkinsfile'da kullanıcaz)
 
 8- "Create" düğmesine tıklayarak bilgilerinizi kaydedin.
-
-
-
 
 ## Jenkins'de webhooks trigir ayarı için:
 
@@ -509,31 +536,31 @@ bash ./docker.sh
 
 6- "Repository URL" kısmına github repo url girin.
 
-7- "Branch Specifier (blank for 'any')"  kısmına hangi branch'da çalışmasını istiyorsanız yazabilirsiniz.
+7- "Branch Specifier (blank for 'any')" kısmına hangi branch'da çalışmasını istiyorsanız yazabilirsiniz.
 
-8- "Script Path"  Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
+8- "Script Path" Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
 
 9- "Kaydet" diyebiliriz.
 
-
-
-#############################
- ###### Jenkinsfile ########
 #############################
 
-````sh
+###### Jenkinsfile
+
+#############################
+
+```sh
 
 pipeline {
-    agent any // This tells Jenkins to use any available agent to run the pipeline
+    agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
-        DOCKER_USERNAME = 'mecit35'
-        REMOTE_HOST = 'nginx'
-        REMOTE_USER = 'mecit_tuksoy'
-        PROJEKT_ID = 'deneme-426109'
-        GCLOUD_CREDS = credentials('gcloud-creds')
-        ZONE = 'us-central1-a'
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials') # jenkinse eklediğimiz "docker-hub-credentials" id'li credentials
+        DOCKER_USERNAME = 'mecit35'    #dockerhub kullanıcı adı
+        REMOTE_HOST = 'nginx'          # Gcloud'da kurduğumuz ikinci makine ismi
+        REMOTE_USER = 'mecit_tuksoy'   # Gcloud'da kurduğumuz ikinci makinenin kullanıcı ismi "whoami"
+        PROJEKT_ID = 'deneme-426109'   # Gcloud'da çalıştığımız proje id'si
+        GCLOUD_CREDS = credentials('gcloud-creds')    # jenkinse eklediğimiz "gcloud-creds" id'li credentials
+        ZONE = 'us-central1-a'         # Gcloud'da kurduğumuz makinelerin Zone'ları
 
     }
 
@@ -551,7 +578,7 @@ pipeline {
                 sh '. ./jenkins/package-application.sh'
             }
         }
-        
+
         stage('Prepare Tags for Docker Images') {
             steps {
                 echo 'Preparing Tags for Docker Images'
@@ -567,7 +594,7 @@ pipeline {
                 sh 'docker build --force-rm -t ${IMAGE_TAG} .'
             }
         }
-                        
+
 
         stage('Push Docker Image') {
             steps {
@@ -580,8 +607,8 @@ pipeline {
                     }
                 }
             }
-        
-    
+
+
 
         stage('Deploy on other linux machine') {
             steps {
@@ -598,9 +625,42 @@ pipeline {
                       "
                     '''
                 }
-            }         
+            }
         }
     }
 }
 
-````
+```
+
+# Pipeline "Package Application" aşamasında kullandığı "package-application.sh" dosyası:
+
+Proje ile aynı dizinde "jenkins" klasörünün içinde olmalı.
+
+dosya oluştur ve içine git:
+
+```sh
+mkdir jenkins && cd jenkins
+# package-application.sh dosyası oluştur
+nano package-application.sh
+```
+
+Dosya içeriği:
+
+```sh
+docker run --rm -v $HOME/.m2:/root/.m2 -v $WORKSPACE:/app -w /app maven:3.8-openjdk-11 mvn clean package
+```
+
+# Pipeline "Build Docker Image" aşamasında kullandığı "Dockerfile" dosyası:
+
+```sh
+nano Dockerfile
+```
+
+Dosya içeriği:
+
+```sh
+FROM openjdk:17-jdk-alpine
+COPY target/my-app-1.0-SNAPSHOT.jar /myapp/app.jar
+WORKDIR /myapp
+CMD ["java", "-jar", "app.jar"]
+```
