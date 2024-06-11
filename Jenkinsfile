@@ -44,7 +44,7 @@ pipeline {
         }
                         
 
-        stage('Check and Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
@@ -58,7 +58,7 @@ pipeline {
         
     
 
-        stage('Test Google Cloud SDK') {
+        stage('Deploy on other linux machine') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''

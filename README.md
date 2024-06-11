@@ -351,10 +351,64 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 **Create First Admin User** sayfasında yeni kullanıcı adı ve şifre belirlip başlatma işlemini bitiriyoruz.
 
+# Nginx kurduğumuz makinede oluşturacağımız image çekip docker containere çalıştıracağımız için bu makineyede docker kuruyoruz:
+
+````sh
+sudo nano docker.sh
+````
+
+docker.sh dosyasının içeriği:
+
+````sh
+#!/bin/bash
+
+# Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
+sudo apt-get remove -y docker docker-engine docker.io containerd runc
+
+# Docker için gereksinim duyulan paketleri yükleyin
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+# Docker'ın resmi GPG anahtarını ekleyin
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Docker resmi apt repository'sini kurun
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Paket veritabanını güncelleyin ve Docker'ı yükleyin
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Docker'ın başlangıçta başlatılmasını sağlayın
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Kullanıcıyı docker grubuna ekleyin
+sudo usermod -aG docker $USER
+
+# Jenkins hizmetini yeniden başlatın
+sudo systemctl restart jenkins
+
+# Docker'ın kurulumunu ve sürümünü kontrol edin
+docker --version
+
+echo "Docker başarıyla kuruldu ve yapılandırıldı."
+
+# Oturumu yeniden yükle
+newgrp docker
+````
+
+Çalıştırmak içim:
+
+````sh
+bash ./docker.sh
+````
 
 
 
-# Gerekli eklentilerin yüklenmesi için:
+# Domain name ile jenkinse bağlanarak gerekli eklentilerin yüklenmesi için:
 
 1- Jenkins dashboard'una gidin.
 
@@ -460,3 +514,93 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 8- "Script Path"  Jenkinsfile ismi farklı ise onu burada belirtmelisiniz.
 
 9- "Kaydet" diyebiliriz.
+
+
+
+#############################
+ ###### Jenkinsfile ########
+#############################
+
+````sh
+
+pipeline {
+    agent any // This tells Jenkins to use any available agent to run the pipeline
+
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        DOCKER_USERNAME = 'mecit35'
+        REMOTE_HOST = 'nginx'
+        REMOTE_USER = 'mecit_tuksoy'
+        PROJEKT_ID = 'deneme-426109'
+        GCLOUD_CREDS = credentials('gcloud-creds')
+        ZONE = 'us-central1-a'
+
+    }
+
+    stages {
+        stage('Clone repository') {
+            steps {
+                sh 'rm -rf simple-java-container-CI-CD || true'
+                sh 'git clone https://github.com/Mecit-tuksoy/simple-java-container-CI-CD.git'
+            }
+        }
+
+        stage('Package Application') {
+            steps {
+                echo 'Compiling source code'
+                sh '. ./jenkins/package-application.sh'
+            }
+        }
+        
+        stage('Prepare Tags for Docker Images') {
+            steps {
+                echo 'Preparing Tags for Docker Images'
+                script {
+                    MVN_VERSION = sh(script: '. ${WORKSPACE}/target/maven-archiver/pom.properties && echo $version', returnStdout: true).trim()
+                    env.IMAGE_TAG = "my-java-app-v${MVN_VERSION}".toLowerCase()
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build --force-rm -t ${IMAGE_TAG} .'
+            }
+        }
+                        
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                        sh "docker tag ${IMAGE_TAG}:latest ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
+                        sh "docker push ${DOCKER_USERNAME}/${IMAGE_TAG}:latest"
+                        }
+                    }
+                }
+            }
+        
+    
+
+        stage('Deploy on other linux machine') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                    sh '''
+                      gcloud version
+                      gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
+                      gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
+                          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                          docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          sleep 30
+                          curl http://localhost:8080
+                      "
+                    '''
+                }
+            }         
+        }
+    }
+}
+
+````
