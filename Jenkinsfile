@@ -73,8 +73,8 @@ pipeline {
                       sleep 30
                       curl http://${DEPLOY_MACHINE}:9090
                     '''  
-            }         
+                }         
+            }
         }
-    }
+    }    
 }
-
