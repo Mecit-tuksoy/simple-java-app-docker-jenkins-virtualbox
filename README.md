@@ -1,3 +1,26 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ####################################################################
 
 # Google Cloud Platform'da Ubuntu 24.04 LTS Minimal Sunucu Kurulumu
@@ -198,7 +221,7 @@ ls -al
 sudo chmod 755 docker.sh
 ```
 
-jenkins.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
+docker.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
 
 ```sh
 bash ./docker.sh

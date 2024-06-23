@@ -4,6 +4,12 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DOCKER_USERNAME = 'mecit35'
+        REMOTE_HOST = 'nginx'
+        REMOTE_USER = 'mecit_tuksoy'
+        PROJEKT_ID = 'deneme-426109'
+        GCLOUD_CREDS = credentials('gcloud-creds')
+        ZONE = 'us-central1-a'
+
     }
 
     stages {
@@ -56,13 +62,14 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
-                      ssh deploy@192.168.1.105 --command="
+                      gcloud version
+                      gcloud auth activate-service-account --key-file="$GCLOUD_CREDS"
+                      gcloud compute ssh ${REMOTE_USER}@${REMOTE_HOST} --zone=${ZONE} --project=${PROJEKT_ID} --command="
                           echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                          docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
                           docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                          docker run -d -p 9090:9090 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
                           sleep 30
-                          curl http://192.168.1.105:9090
+                          curl http://localhost:8080
                       "
                     '''
                 }
