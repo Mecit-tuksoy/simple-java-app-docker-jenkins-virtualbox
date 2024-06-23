@@ -54,18 +54,23 @@ pipeline {
 
         stage('Deploy on other linux machine') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                withCredentials([usernamePassword(credentialsId: 'deploy-credentials', passwordVariable: 'DEPLOY_PASSWORD', usernameVariable: 'DEPLOY_USER')]) {
                     sh '''
-                      ssh -o StrictHostKeyChecking=no deploy@192.168.1.105 "
-                          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                          docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
-                          docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                          docker run -d -p 9090:9090 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                          sleep 30
-                          curl http://192.168.1.105:9090
+                      sshpass -p "${DEPLOY_PASSWORD}" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} "
+                          echo 'Connected to deploy machine'
                       "
                     '''
                 }
+
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                    sh '''
+                      echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                      docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
+                      docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                      docker run -d -p 9090:9090 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                      sleep 30
+                      curl http://${DEPLOY_MACHINE}:9090
+                    '''  
             }         
         }
     }
