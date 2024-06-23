@@ -68,7 +68,7 @@ pipeline {
                     usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
                       sshpass -p "${DEPLOY_PASSWORD}" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} '
-                        mkdir test && cd test && touch test.txt
+                        mkdir test1 && cd test1 && echo "hello jenkins" > test1.txt
                       '  
                     '''
                 }
