@@ -56,7 +56,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
-                      ssh deploy@192.168.1.105 "
+                      ssh -o StrictHostKeyChecking=no deploy@192.168.1.105 "
                           echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                           docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
                           docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
