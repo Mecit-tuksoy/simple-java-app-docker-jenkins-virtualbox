@@ -74,7 +74,7 @@ pipeline {
                       docker rmi ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest || true
                       docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest
                       docker run -d -p 9090:9090 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest
-                      sleep 30'
+                      sleep 30
                       curl http://${DEPLOY_MACHINE}:9090
                       EOF
                     '''
