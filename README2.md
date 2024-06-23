@@ -386,17 +386,12 @@ getent group docker
 ````
 
 
+# Jenkins makineyde sshpass komutunu çalıştırabilmek için:
 
-# Jenkinse bağlanarak gerekli eklentilerin yüklenmesi için:
-
-1- Jenkins dashboard'una gidin.
-
-2- Sol taraftaki menüden "Jenkins'i Yönet" seçeneğine tıklayın.
-
-3- "Eklentiler" tıklayın
-
-4- "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline** eklentilerini yükleyin.
-
+````sh
+sudo apt update
+sudo apt install sshpass
+````
 
 
 ## GitHub'ta webhooks ayarlamak için:
@@ -545,7 +540,11 @@ sudo chmod 744 docker.sh
 bash ./docker.sh
 ```
 
+# Jenkinsfile'ın en son adımında containerı 9090 portunda yayın yapacak şekilde ayarladığım için bu portu açıyorum:
 
+````sh
+sudo ufw allow 9090
+````
 
 
 

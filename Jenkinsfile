@@ -66,12 +66,16 @@ pipeline {
 
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
-                      echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                      docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
-                      docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                      docker run -d -p 9090:9090 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
-                      sleep 30
-                      curl http://${DEPLOY_MACHINE}:9090
+                      sshpass -p "${DEPLOY_PASSWORD}" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} "
+                          echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                          docker stop \$(docker ps -q --filter 'publish=9090') || true
+                          docker rm \$(docker ps -a -q --filter 'publish=9090') || true
+                          docker rmi ${DOCKER_USERNAME}/${IMAGE_TAG}:latest || true
+                          docker pull ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          docker run -d -p 9090:9090 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
+                          sleep 30
+                          curl http://${DEPLOY_MACHINE}:9090
+                      "    
                     '''  
                 }         
             }
