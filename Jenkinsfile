@@ -67,7 +67,7 @@ pipeline {
                     usernamePassword(credentialsId: 'deploy-credentials', passwordVariable: 'DEPLOY_PASSWORD', usernameVariable: 'DEPLOY_USER'),
                     usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
-                    sshpass -p "${DEPLOY_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} << EOF
+                    sshpass -p "${DEPLOY_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} <<EOF
                     echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                     docker stop $(docker ps -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest") || true
                     docker rm $(docker ps -a -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest") || true
