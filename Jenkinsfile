@@ -35,14 +35,17 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker stop $(docker ps -q --filter "ancestor=${IMAGE_TAG}") || true'
-                sh 'docker rm $(docker ps -a -q --filter "ancestor=${IMAGE_TAG}") || true'
-                sh 'docker rmi ${IMAGE_TAG}'
-                sh 'docker build --force-rm -t ${IMAGE_TAG} .'
-            }
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                        sh 'docker stop $(docker ps -q --filter "ancestor=${DOCKER_USERNAME}/${IMAGE_TAG}") || true'
+                        sh 'docker rm $(docker ps -a -q --filter "ancestor=${DOCKER_USERNAME}/${IMAGE_TAG}") || true'
+                        sh 'docker rmi ${IMAGE_TAG}'
+                        sh 'docker build --force-rm -t ${DOCKER_USERNAME}/${IMAGE_TAG} .'
+                    }
+                }
+            }            
         }
-                        
-
+        
         stage('Push Docker Image') {
             steps {
                 script {
