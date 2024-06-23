@@ -70,7 +70,7 @@ pipeline {
                           docker run -d -p 8080:8080 ${DOCKER_USERNAME}/${IMAGE_TAG}:latest
                           sleep 30
                           curl http://localhost:8080
-                      "
+                      "   
                     '''
                 }
             }         
