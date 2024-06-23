@@ -318,6 +318,17 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 **Create First Admin User** sayfasında yeni kullanıcı adı ve şifre belirlip başlatma işlemini bitiriyoruz.
 
 
+# Domain name ile jenkinse bağlanarak gerekli eklentilerin yüklenmesi için:
+
+1- Jenkins dashboard'una gidin.
+
+2- Sol taraftaki menüden "Jenkins'i Yönet" seçeneğine tıklayın.
+
+3- "Eklentiler" tıklayın
+
+4- "Yüklenebilecek eklentiler" bölümünden **Docker** , **Docker Pipeline** eklentilerini yükleyin.
+
+
 
 # Jenkins Server'a Docker kurulumu:
 
