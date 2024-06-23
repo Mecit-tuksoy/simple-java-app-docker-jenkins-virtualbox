@@ -35,6 +35,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                sh 'docker stop $(docker ps -q --filter "ancestor=${IMAGE_TAG}") || true'
+                sh 'docker rm $(docker ps -a -q --filter "ancestor=${IMAGE_TAG}") || true'
+                sh 'docker rmi ${IMAGE_TAG}'
                 sh 'docker build --force-rm -t ${IMAGE_TAG} .'
             }
         }
@@ -64,8 +67,8 @@ pipeline {
                       sshpass -p "${DEPLOY_PASSWORD}" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} '
                           echo "Connected to deploy machine"
                           echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin
-                          docker stop $(docker ps -q --filter "publish=9090") || true
-                          docker rm $(docker ps -a -q --filter "publish=9090") || true
+                          docker stop $(docker ps -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest") || true
+                          docker rm $(docker ps -a -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest") || true
                           docker rmi "${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest" || true
                           docker pull "${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest"
                           docker run -d -p 9090:9090 "${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest"
