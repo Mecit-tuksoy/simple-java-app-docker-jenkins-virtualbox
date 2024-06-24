@@ -427,7 +427,7 @@ Ngrok Authtoken Ayarlama için:
 ngrok config add-authtoken <YOUR_AUTHTOKEN_HERE>
 ````
 
-Ngrok'u 443 portu için çalıştırmak için:
+Ngrok'u 443 portu çalıştırmak için:
 ````sh
 ngrok http 443
 ````

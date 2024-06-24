@@ -66,25 +66,22 @@ pipeline {
                 withCredentials([
                     usernamePassword(credentialsId: 'deploy-credentials', passwordVariable: 'DEPLOY_PASSWORD', usernameVariable: 'DEPLOY_USER'),
                     usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
-                    script {
-                        def sshScript = '''
-                            sshpass -p "${DEPLOY_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} << EOF
-                                echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                                docker stop $(docker ps -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}") || true
-                                docker rm $(docker ps -a -q --filter "ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}") || true
-                                docker rmi ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG} || true
-                                docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest
-                                docker run -d -p 9090:8080 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest
-                                sleep 30
-                                curl http://${DEPLOY_MACHINE}:9090
-                            EOF
-                        '''
-                        sh(script: sshScript, label: '')
-                    }
+                    sh '''
+                      sshpass -p "${DEPLOY_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} "
+                        echo \"$DOCKERHUB_CREDENTIALS_PSW\" | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin;
+                        docker stop \$(docker ps -q --filter \"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\") || true;
+                        docker rm \$(docker ps -a -q --filter \"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\") || true;
+                        docker rmi ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG} || true;
+                        docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
+                        docker run -d -p 9090:8080 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
+                        sleep 30;
+                        curl http://${DEPLOY_MACHINE}:9090
+                      " 
+                    '''
                 }
-            }  
+            }
         }
-    }          
+    }        
 }
 
 
