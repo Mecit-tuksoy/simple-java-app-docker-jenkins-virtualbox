@@ -68,9 +68,9 @@ pipeline {
                     usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
                     sh '''
                       sshpass -p "${DEPLOY_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_MACHINE} "
-                        echo \\"$DOCKERHUB_CREDENTIALS_PSW\\" | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin;
-                        docker stop \$(docker ps -q --filter \\"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\\") || true;
-                        docker rm \$(docker ps -a -q --filter \\"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\\") || true;
+                        echo \"$DOCKERHUB_CREDENTIALS_PSW\" | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin;
+                        docker stop \$(docker ps -q --filter \"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\") || true;
+                        docker rm \$(docker ps -a -q --filter \"ancestor=${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}\") || true;
                         docker rmi ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG} || true;
                         docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
                         docker run -d -p 9090:8080 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
@@ -83,5 +83,4 @@ pipeline {
         }
     }        
 }
-
 
