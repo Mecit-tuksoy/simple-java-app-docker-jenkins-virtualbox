@@ -20,7 +20,7 @@ public class App {
     static class MyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            String response = "Merhaba ozgur yazilim!!!";
+            String response = "Merhaba ozgur yazilim...";
             t.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = t.getResponseBody();
             os.write(response.getBytes());
