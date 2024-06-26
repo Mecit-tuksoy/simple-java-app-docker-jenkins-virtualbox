@@ -5,7 +5,7 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DEPLOY_CREDENTIALS = credentials('deploy-credentials')
         DOCKER_USERNAME = 'mecit35'
-        DEPLOY_MACHINE = '192.168.1.105'
+        DEPLOY_MACHINE = '192.168.43.247'
         CONTAINER_NAME = 'my-container'
     }
 

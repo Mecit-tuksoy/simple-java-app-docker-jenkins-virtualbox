@@ -120,16 +120,14 @@ Running  sshd               OpenSSH SSH Server
 9- Vscode'u yönetici modunda açmak için "Başlat" kısmında vscode'u bularak üzerine sağ tıklayıp yönetici modunda açıyoruz daha sonra: 
 
 ````sh
-ssh deploy@192.168.1.100
+ssh deploy@<deploy-server-ip>
 ````
 
-bu komutu kullanarak, gelen ekranda şifremizi girerek virtualbox ile oluşturduğumuz sanal makineye ssh ile bağlanmış oluruz.
+bu komutu kullanarak, gelen ekranda "yes" diyerek ve şifremizi girerek virtualbox ile oluşturduğumuz sanal makineye ssh ile bağlanmış oluruz.
 
 
 
-
-
-## Güvenlik yapılandırmaları
+## Ayağa kaldırdığımız makinelerdeki Güvenlik yapılandırmaları için:
 
 1- 
 ````sh
@@ -146,13 +144,146 @@ sudo ufw enable
 ````sh
 sudo ufw allow 443
 sudo ufw allow 22
+sudo ufw allow 8080 #bu port jenkins kurulduktan ve 443 portundan yayın yapacak şekilde ayarlandıktan sonra Jenkins server'da silinecek.
 # portları görmek için:
 sudo ufw status numbered
 # portları silmek istersek:
 sudo ufw delete 1
 ````
 
-### Self-Signed Sertifika ile Jenkins'e SSL Kurulumu
+
+
+###########################################
+
+### Jenkins servere jenkins kurulumu:
+
+###########################################
+
+
+'jenkins.sh' dosyası oluşturup içine bunları yapıştırıyoruz;
+
+```sh
+nano jenkins.sh
+```
+
+```sh
+#!/bin/bash
+
+# Sistemi güncelleyin
+sudo apt update -y
+
+# install java 17
+sudo apt install openjdk-17-jdk -y
+
+# Jenkins GPG anahtarını ve depo ekleyin
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+# Depoları güncelleyin ve Jenkins'i kurun
+sudo apt update -y
+sudo apt install jenkins -y
+
+# Jenkins hizmetini etkinleştirin ve başlatın
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+
+
+IP=$(ip a | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1)
+# Kurulumun başarılı olup olmadığı kontrol ediliyor
+if systemctl is-active --quiet jenkins; then
+    echo "Jenkins başarıyla kuruldu!"
+    echo "Jenkins web arayüzüne tarayıcınızdan http://$IP:8080 adresinden erişebilirsiniz."
+else
+    echo "Jenkins kurulumu başarısız oldu. Lütfen hataları kontrol edin."
+fi
+```
+
+Yetkilendirme
+
+```sh
+ls -al
+sudo chmod 744 jenkins.sh
+```
+
+jenkins.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
+
+```sh
+bash ./jenkins.sh
+```
+
+###########################################
+
+### Jenkins Server'a Docker kurulumu:
+
+###########################################
+
+'docker.sh' dosyası oluşturma:
+
+```sh
+nano docker.sh
+```
+
+dosyanın içi:
+
+```sh
+#!/bin/bash
+
+# Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
+sudo apt-get remove -y docker docker-engine docker.io containerd runc
+
+# Docker için gereksinim duyulan paketleri yükleyin
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+# Docker'ın resmi GPG anahtarını ekleyin
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Docker resmi apt repository'sini kurun
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Paket veritabanını güncelleyin ve Docker'ı yükleyin
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Docker'ın başlangıçta başlatılmasını sağlayın
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Kullanıcıyı docker grubuna ekleyin
+sudo usermod -aG docker $USER
+sudo usermod -aG docker jenkins
+
+# Jenkins hizmetini yeniden başlatın
+sudo systemctl restart jenkins
+
+# Docker'ın kurulumunu ve sürümünü kontrol edin
+docker --version
+
+echo "Docker başarıyla kuruldu ve yapılandırıldı."
+
+# Oturumu yeniden yükle
+newgrp docker
+```
+
+Yetkilendirme
+
+```sh
+ls -al
+sudo chmod 744 docker.sh
+```
+
+docker.sh' dosyasını çalıştırıyoruz ve Jenkins kurulacak
+
+```sh
+bash ./docker.sh
+
+#Docker grubunda jenkins oluduğunu kontrol et:
+getent group docker
+```
+
+### Self-Signed Sertifika ile Jenkins Server'e SSL Kurulumu
 
 1- OpenSSL'in yüklü olduğundan emin olun.
 ````sh
@@ -188,7 +319,7 @@ Email Address []:mecit@mycompany.com
 
 3- Keystore Dosyası Oluşturma:
  ````sh
-openssl pkcs12 -export -in /etc/ssl/private/jenkins.crt -inkey /etc/ssl/private/jenkins.key -out /etc/ssl/private/jenkins.p12 -name jenkins -password pass:s3cR3tPa55w0rD
+sudo openssl pkcs12 -export -in /etc/ssl/private/jenkins.crt -inkey /etc/ssl/private/jenkins.key -out /etc/ssl/private/jenkins.p12 -name jenkins -password pass:123456789asdf
 
 ````
 Bu komut, sertifika ve anahtarı içeren bir PKCS#12 dosyası (jenkins.p12) oluşturur.
@@ -197,7 +328,7 @@ Bu komut, sertifika ve anahtarı içeren bir PKCS#12 dosyası (jenkins.p12) olu�
 4- Java Keystore Dosyası Oluşturma:
 
 ````sh
-sudo keytool -importkeystore -deststorepass s3cR3tPa55w0rD -destkeypass s3cR3tPa55w0rD -destkeystore /etc/ssl/private/jenkins.jks -srckeystore /etc/ssl/private/jenkins.p12 -srcstoretype PKCS12 -srcstorepass s3cR3tPa55w0rD -alias jenkins
+sudo keytool -importkeystore -deststorepass 123456789asdf -destkeypass 123456789asdf -destkeystore /etc/ssl/private/jenkins.jks -srckeystore /etc/ssl/private/jenkins.p12 -srcstoretype PKCS12 -srcstorepass 123456789asdf -alias jenkins
 ````
 Oluşturduğumuz Özel Anahtar dosyasını Java KeyStore dosyasına dönüştürmek için keytool komutunu kullanıyoruz:
 Bu komut, jenkins.p12 dosyasını alır ve bir Java Keystore dosyası (jenkins.jks) oluşturur.
@@ -205,12 +336,15 @@ Bu komut, jenkins.p12 dosyasını alır ve bir Java Keystore dosyası (jenkins.j
 Java KeyStore (JKS) dosyası, Jenkins gibi uygulamaların HTTPS üzerinden güvenli iletişim kurabilmesi için gerekli olan SSL/TLS sertifikalarını ve özel anahtarları depolamak ve yönetmek için kullanılır. 
 
 
-5- izinlerin ayarlanması:
+5- Dosya ve dizinlerin izinlerinin ayarlanması:
 
 ````sh
-sudo ls -al /etc/ssl/private
-sudo chown jenkins:jenkins /etc/ssl/private/jenkins.jks
-sudo chmod 644 /etc/ssl/private/jenkins.jks  
+sudo chown -R root:jenkins /etc/ssl/private  
+#Bu komut, /etc/ssl/private dizinini root kullanıcısına ve jenkins grubuna atar. Bu, Jenkins kullanıcısının sadece jenkins.jks dosyasına erişimine izin verir.
+sudo chmod 750 /etc/ssl/private
+#Bu komut, /etc/ssl/private dizinini root kullanıcısına (7) okuma, yazma ve çalıştırma yetkisi verir, jenkins kullanıcısına (5) okuma ve çalıştırma yetkisi verir.
+sudo chmod 640 /etc/ssl/private/jenkins.jks
+#Bu komut ise jenkins.jks dosyasına sadece root kullanıcısının (6) okuma ve yazma yetkisi verir, jenkins kullanıcısının sadece okuma yetkisi olur.
 ````
 
 
@@ -272,7 +406,7 @@ Environment="JENKINS_HTTPS_PORT=443"
 Environment="JENKINS_HTTPS_KEYSTORE=/etc/ssl/private/jenkins.jks"
 
 
-Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD=s3cR3tPa55w0rD"
+Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD=123456789asdf"
 
 
 AmbientCapabilities=CAP_NET_BIND_SERVICE
@@ -330,78 +464,13 @@ Gelen ekranda **Install suggested plugins** e tıklayarak devam ediyoruz.
 
 
 
-# Jenkins Server'a Docker kurulumu:
-
-Jenkins'in kurulu olduğu makinede docker komutları kullanacağımız için docker kuruyoruz:
-
-'docker.sh' dosyası oluşturma:
-
-```sh
-nano docker.sh
-```
-
-dosyanın içi:
-
-```sh
-#!/bin/bash
-
-# Docker'ı kurmadan önce mevcut Docker kurulumlarını kaldırın
-sudo apt-get remove -y docker docker-engine docker.io containerd runc
-
-# Docker için gereksinim duyulan paketleri yükleyin
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-# Docker'ın resmi GPG anahtarını ekleyin
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-# Docker resmi apt repository'sini kurun
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Paket veritabanını güncelleyin ve Docker'ı yükleyin
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Docker'ın başlangıçta başlatılmasını sağlayın
-sudo systemctl enable docker
-sudo systemctl start docker
-
-# Kullanıcıyı docker grubuna ekleyin
-sudo usermod -aG docker $USER
-sudo usermod -aG docker jenkins
-
-# Docker'ın kurulumunu ve sürümünü kontrol edin
-docker --version
-
-echo "Docker başarıyla kuruldu ve yapılandırıldı."
-
-# Oturumu yeniden yükle
-newgrp docker
-```
-
-Yetkilendirme
-
-````sh
-ls -al
-sudo chmod 744 docker.sh
-````
-
-docker.sh dosyasını çalıştırıyoruz
-
-````sh
-bash ./docker.sh
-#Docker grubunda jenkins oluduğunu kontrol et:
-getent group docker
-````
-
 
 # Jenkins makineyde sshpass komutunu çalıştırabilmek için:
 
 ````sh
 sudo apt update
 sudo apt install sshpass
+#Bunu Deploy server'a bağlanırken şifreile giriş yapabilmek için kullanıyoruz.
 ````
 
 
@@ -551,11 +620,6 @@ sudo chmod 744 docker.sh
 bash ./docker.sh
 ```
 
-# Jenkinsfile'ın en son adımında containerı 9090 portunda yayın yapacak şekilde ayarladığım için bu portu açıyorum:
-
-````sh
-sudo ufw allow 9090
-````
 
 
 
@@ -621,4 +685,18 @@ sudo apt-get install jenkins
 
 
 
+[Service]
+Environment="JENKINS_PORT=-1"
+Environment="JENKINS_HTTPS_PORT=443"
+Environment="JENKINS_HTTPS_KEYSTORE=/etc/ssl/private/jenkins.jks"
+Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD=s3cR3tPa55w0rD"
 
+
+
+jenkinsi manual başlatmak:
+sudo /usr/bin/java -Djava.awt.headless=true -jar /usr/share/java/jenkins.war --webroot=/var/cache/jenkins/war --httpsPort=443 --httpsKeyStore=/etc/ssl/private/jenkins.jks --httpsKeyStorePassword=123456789asdf
+
+
+
+jenkins.jks dosyasının içeriği
+sudo keytool -list -v -keystore /etc/ssl/private/jenkins.jks
