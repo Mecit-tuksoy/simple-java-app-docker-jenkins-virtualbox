@@ -561,7 +561,7 @@ ngrok                                                                           
 
 
 
-2. linüx makinede oluşturacağımız image çekip docker container çalıştıracağımız için bu makineyede docker kuruyoruz:
+# Deploy Server'da image çekip docker container çalıştıracağımız için bu server'ada docker kuruyoruz:
 
 ```sh
 sudo nano docker.sh
