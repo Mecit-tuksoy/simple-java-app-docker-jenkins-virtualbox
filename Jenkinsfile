@@ -5,7 +5,7 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DEPLOY_CREDENTIALS = credentials('deploy-credentials')
         DOCKER_USERNAME = 'mecit35'
-        DEPLOY_MACHINE = '192.168.43.247'
+        DEPLOY_MACHINE = '192.168.1.124'
         CONTAINER_NAME = 'my-container'
     }
 
@@ -74,9 +74,9 @@ pipeline {
                         docker rm ${CONTAINER_NAME} || true;
                         docker rmi ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG} || true;
                         docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
-                        docker run -d --name ${CONTAINER_NAME} -p 9090:8080 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
+                        docker run -d --name ${CONTAINER_NAME} -p 8080:8080 ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_TAG}:latest;
                         sleep 30;
-                        curl http://${DEPLOY_MACHINE}:9090
+                        curl http://${DEPLOY_MACHINE}:8080
                       " 
                     '''
                 }
